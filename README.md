@@ -51,8 +51,6 @@ Link do repositório original: https://github.com/ICL-ml4csec/EarlyCrowAPT
 - Atualizei o arquivo `.gitignore` para não versionar `data/` e o ambiente virtual.
 - Atualizei `requirements.txt` para incluir dependências necessárias para gerar os gráficos (matplotlib, seaborn).
 
-Se for necessário, posso reverter/ajustar qualquer alteração — veja o histórico de commits antes de publicar.
-
 ## Requisitos e instalação
 
 Este repositório foi testado com Python 3.10+ em um ambiente virtual. Atualizei o `requirements.txt` para incluir bibliotecas de visualização.
