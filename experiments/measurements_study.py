@@ -19,7 +19,8 @@ def attach_df(_n,_bins,_df_cdf,_LABEL,_FEATURE):
     df_temp['Y'] = pd.Series(_n)
     df_temp['Label'] = df_temp.Label.fillna(_LABEL)
     df_temp['Feature'] = _FEATURE
-    return _df_cdf.append(df_temp, ignore_index=True)
+    # pandas.DataFrame.append was removed in pandas 2.x
+    return pd.concat([_df_cdf, df_temp], ignore_index=True)
 
 def view_cdf(_FEATURE,_minY ,_maxY):
     return df_cdf.loc[(df_cdf.Feature==_FEATURE) &

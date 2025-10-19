@@ -10,11 +10,26 @@ def url_features_extractor(_df):
     url_df = url_df.reset_index(drop=True)
 
 
-    serialized_url=pd.DataFrame(columns=['binary_labels','multiple_labels','Source','Destination',
-                                             'fqdn','url','Filename','Depth',
-                                             'No_Para','No_Values','No_Frag',
-                                             'Has_query_string','Referer',
-                                             'Cookie'])
+    serialized_url = pd.DataFrame(
+        columns=[
+            'binary_labels',
+            'multiple_labels',
+            'Source',
+            'Destination',
+            'fqdn',
+            'url',
+            'Filename',
+            'Depth',
+            'No_Para',
+            'No_Values',
+            'No_Frag',
+            'Has_query_string',
+            'Referer',
+            'Cookie',
+        ]
+    )
+    # collect rows to a list and concat at the end (pandas 2.x compatibility)
+    _serialized_rows = []
     PRINT_MESSAGE="URLs resources analysis"
 
     for i in range(0,len(url_df)):
@@ -22,20 +37,34 @@ def url_features_extractor(_df):
             "{} {}%".format(PRINT_MESSAGE,round((i/len(url_df))*100,1)), end='\r')
         single_list = url_df.loc[i, 'url_cf_list']
         for j, single_list in enumerate(single_list):
-
-            serialized_url = serialized_url.append({'binary_labels': url_df.loc[
-                        i, 'label'],'multiple_labels': url_df.loc[i, 'multiple_label'],
-                    'Source': url_df.loc[i, 'Source'], 'Destination' : url_df.loc[i, 'Destination'],
-                    'fqdn':single_list[0], 'url': single_list[1], 'Filename': single_list[2],
-                     'Depth': single_list[3] ,'No_Para': single_list[4], 'No_Values': single_list[5],
-              'No_Frag': single_list[6],  'Has_query_string': single_list[7],
-             'Referer': single_list[8], 'Cookie': single_list[9] }, ignore_index=True)
+            _serialized_rows.append(
+                {
+                    'binary_labels': url_df.loc[i, 'label'],
+                    'multiple_labels': url_df.loc[i, 'multiple_label'],
+                    'Source': url_df.loc[i, 'Source'],
+                    'Destination': url_df.loc[i, 'Destination'],
+                    'fqdn': single_list[0],
+                    'url': single_list[1],
+                    'Filename': single_list[2],
+                    'Depth': single_list[3],
+                    'No_Para': single_list[4],
+                    'No_Values': single_list[5],
+                    'No_Frag': single_list[6],
+                    'Has_query_string': single_list[7],
+                    'Referer': single_list[8],
+                    'Cookie': single_list[9],
+                }
+            )
 
     print('{} - Done'.format(PRINT_MESSAGE))
 
     #single_list=url_df.loc[14250,'url_cf_list']
 
-    single_list_backup=serialized_url.copy(deep=True)
+    # if we collected rows, append them to the dataframe
+    if _serialized_rows:
+        serialized_url = pd.concat([serialized_url, pd.DataFrame(_serialized_rows)], ignore_index=True)
+
+    single_list_backup = serialized_url.copy(deep=True)
     #single_list_backup.to_csv("D:\Dropbox\Personal\PhD Project\Third Year\Traffic Data Collection\csv/full_data/07042021url_profile_directFrom_url_cf_list.csv",index=False)
     #serialized_url=pd.read_csv("D:\Dropbox\Personal\PhD Project\Third Year\Traffic Data Collection\csv/full_data/07042021url_profile_directFrom_url_cf_list.csv")
 

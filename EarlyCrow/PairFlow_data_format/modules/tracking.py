@@ -28,27 +28,29 @@ def tracking_packets(df, GRANULARITY, gr):
               .format(gr * GRANULARITY, gr * GRANULARITY + GRANULARITY),
               end='\r')
         return conn_pairs_df ## for those time interval the does not have any connection, break and
-    conn_pairs_unique_df = pd.DataFrame(index=[0],
-                                        columns=conn_pairs_df.columns)
+    # Build unique pairs without using DataFrame.append (pandas 2.x)
+    conn_pairs_unique = []
     for i in range(len(conn_pairs_df)):
+        row_i = conn_pairs_df.iloc[i]
         if i == 0:
-            conn_pairs_unique_df.iloc[0] = conn_pairs_df.iloc[i]
-        else:
+            conn_pairs_unique.append(row_i)
+            continue
 
-            for j in range(len(conn_pairs_unique_df)):
-                if ((conn_pairs_df.loc[i, 'Source'] ==
-                     conn_pairs_unique_df.loc[
-                         j, 'Destination']
-                     and conn_pairs_df.loc[i, 'Destination'] ==
-                     conn_pairs_unique_df.loc[j, 'Source'])):
-                    j = len(
-                        conn_pairs_unique_df)  # for last flow if duplicate, so won't be bypass the next condition
-                    break
-            if j == len(conn_pairs_unique_df) - 1:
-                conn_pairs_unique_df = conn_pairs_unique_df.append(
-                    conn_pairs_df.iloc[i])
-                conn_pairs_unique_df = conn_pairs_unique_df.reset_index(
-                    drop=True)
+        is_duplicate = False
+        for existing in conn_pairs_unique:
+            if (
+                row_i['Source'] == existing['Destination']
+                and row_i['Destination'] == existing['Source']
+            ):
+                is_duplicate = True
+                break
+        if not is_duplicate:
+            conn_pairs_unique.append(row_i)
+
+    if conn_pairs_unique:
+        conn_pairs_unique_df = pd.DataFrame(conn_pairs_unique).reset_index(drop=True)
+    else:
+        conn_pairs_unique_df = pd.DataFrame(columns=conn_pairs_df.columns)
     ### source should be internal , swap destination
     # to source if destination is the internal this is important to collect DNS
     # relavent packets
@@ -132,24 +134,19 @@ def tracking_dns(df, flow_biPkts, GRANULARITY, gr):
             # if len(flow_biPkts[flow_biPkts.EPFLAG_DNS==1]) !=0:
             try:
 
-                if j == 0:
+                # collect dns request packets matching the domain
+                dnsReq_packets_new = df[df.Info.str.contains(domain_res[0])]
+                dnsReq_packets_new = dnsReq_packets_new.drop_duplicates()
+                dnsReq_packets_new = dnsReq_packets_new[
+                    dnsReq_packets_new.Relative_Time < gr * GRANULARITY + GRANULARITY
+                ]
+                dnsReq_packets_new = dnsReq_packets_new.reset_index(drop=True)
 
-                    dnsReq_packets = df[df.Info.str.contains(domain_res[
-                                                                 0])]  ## domain_res[0] is indexed with
-                    # zero because a list with one element
-                    # always
-                else:
-                    dnsReq_packets_new = df[
-                        df.Info.str.contains(domain_res[0])]
-                    dnsReq_packets = dnsReq_packets.append(
-                        dnsReq_packets_new)
-
-                dnsReq_packets = dnsReq_packets.drop_duplicates()
-                dnsReq_packets = dnsReq_packets[
-                    dnsReq_packets.Relative_Time < gr * GRANULARITY + GRANULARITY]  # filter out beoynd time window for now
-                dnsReq_packets = dnsReq_packets.reset_index(drop=True)
-                flow_biPkts = flow_biPkts.append(dnsReq_packets)
-                flow_biPkts = flow_biPkts.append(dnsRes_packets)
+                # concatenate into flow_biPkts
+                if len(dnsReq_packets_new) > 0:
+                    flow_biPkts = pd.concat([flow_biPkts, dnsReq_packets_new], ignore_index=True)
+                if len(dnsRes_packets) > 0:
+                    flow_biPkts = pd.concat([flow_biPkts, dnsRes_packets], ignore_index=True)
             # else:
             except:
                 # print("Flow Does not use DNS request and response")

@@ -70,7 +70,9 @@ def cs_upate(ContextualSummary):
            'DP_dnsReqRatio_Mean', 'DP_dnsReqRatio_Max', 'DP_dnsReqRatio_Min']
     average_features=pf_format+pf_col+hp_col+up_col+dp_col
 
-    updated_cs = pd.DataFrame(columns=identifiers+pf_format_flags+pf_format+pf_col+hp_col+up_col+dp_col)
+    # accumulate rows in a list and concat at the end (more efficient and
+    # compatible with pandas 2.x where DataFrame.append is removed)
+    updated_rows = []
     ## update ContextualSummary ID and Flow ID according to Pairs, sample_interval and label
     ## to we will have a dataframe of one CSID for each pairs with
     ##Flow ID that relfect the last number which will be used to count the average weighted
@@ -117,7 +119,12 @@ def cs_upate(ContextualSummary):
         for counter, transfer in enumerate(result):
             temp.loc[i, '{}'.format(average_features[avg_features_counter])] = transfer
             avg_features_counter+=1
-        updated_cs=updated_cs.append(temp)
+        # append temp (single-row DataFrame) to list
+        updated_rows.append(temp)
+    if updated_rows:
+        updated_cs = pd.concat(updated_rows, ignore_index=True)
+    else:
+        updated_cs = pd.DataFrame(columns=identifiers+pf_format_flags+pf_format+pf_col+hp_col+up_col+dp_col)
     return updated_cs
 
 

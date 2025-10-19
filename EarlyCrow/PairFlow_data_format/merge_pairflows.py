@@ -26,8 +26,9 @@ for fs in FILESET:
 
     DATA = PATH + fs + CF + "_" + str(
         GRANULARITY) + FILEWITHLABEL + version + CSV
-    df_temp=pd.read_csv(DATA)
-    df=df.append(df_temp)
+    df_temp = pd.read_csv(DATA)
+    # Use pd.concat instead of deprecated DataFrame.append
+    df = pd.concat([df, df_temp], ignore_index=True)
 
 
 df=df.reset_index(drop=True)
