@@ -27,15 +27,6 @@ utilizado para construir o sumário contextual de uma captura PCAP, representand
 protocolo relevantes para os TTPs de APT. Avaliamos a efetividade do EarlyCrow em APTs não vistas, obtendo média macro-F1 de 93.02%
 com FPR de 0.74%.
 
-@inproceedings{alageel2022earlycrow,
-  title={EarlyCrow: Detecting APT Malware Command and Control 
-        Over HTTP(S) Using Contextual Summaries},
-  author={Alageel, Almuthanna and Maffeis, Sergio},
-  booktitle={International Conference on Information Security},
-  pages={},
-  year={2022},
-  organization={Springer}
-}
 # EarlyCrowAPT — aplicação do repositório original
 
 Este repositório contém uma cópia / adaptação local da aplicação EarlyCrow publicada em:
